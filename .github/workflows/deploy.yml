@@ -34,13 +34,29 @@ jobs:
       - name: Build website
         run: bun run build
 
+      - name: Find build output
+        id: build-output
+        shell: bash
+        run: |
+          if [ -d "dist" ]; then
+            echo "path=dist" >> "$GITHUB_OUTPUT"
+          elif [ -d "build" ]; then
+            echo "path=build" >> "$GITHUB_OUTPUT"
+          elif [ -d "out" ]; then
+            echo "path=out" >> "$GITHUB_OUTPUT"
+          else
+            echo "No build output folder found."
+            find . -maxdepth 2 -type d | sort
+            exit 1
+          fi
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./${{ steps.build-output.outputs.path }}
 
   deploy:
     environment:
